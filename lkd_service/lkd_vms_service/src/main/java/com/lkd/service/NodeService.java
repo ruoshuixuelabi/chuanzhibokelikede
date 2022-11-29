@@ -50,8 +50,9 @@ public interface NodeService extends IService<NodeEntity> {
 
     /**
      * 获取合作商的点位数
+     *
      * @param ownerId
      * @return
      */
-    Integer getCountByOwner(Integer ownerId);
+    long getCountByOwner(Integer ownerId);
 }

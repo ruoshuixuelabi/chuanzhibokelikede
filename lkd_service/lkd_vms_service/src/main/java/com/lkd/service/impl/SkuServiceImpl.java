@@ -1,4 +1,5 @@
 package com.lkd.service.impl;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -19,24 +20,23 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class SkuServiceImpl extends ServiceImpl<SkuDao,SkuEntity> implements SkuService{
+public class SkuServiceImpl extends ServiceImpl<SkuDao, SkuEntity> implements SkuService {
     @Autowired
     private SkuClassService skuClassService;
     @Autowired
     private ChannelService channelService;
 
 
-
     @Override
     public boolean update(SkuEntity skuEntity) throws LogicException {
         UpdateWrapper<SkuEntity> uw = new UpdateWrapper<>();
         uw.lambda()
-                .set(SkuEntity::getClassId,skuEntity.getClassId())
-                .set(SkuEntity::getSkuName,skuEntity.getSkuName())
-                .set(SkuEntity::getUnit,skuEntity.getUnit())
-                .set(SkuEntity::getSkuImage,skuEntity.getSkuImage())
-                .set(SkuEntity::getPrice,skuEntity.getPrice())
-                .eq(SkuEntity::getSkuId,skuEntity.getSkuId());
+                .set(SkuEntity::getClassId, skuEntity.getClassId())
+                .set(SkuEntity::getSkuName, skuEntity.getSkuName())
+                .set(SkuEntity::getUnit, skuEntity.getUnit())
+                .set(SkuEntity::getSkuImage, skuEntity.getSkuImage())
+                .set(SkuEntity::getPrice, skuEntity.getPrice())
+                .eq(SkuEntity::getSkuId, skuEntity.getSkuId());
 
         return this.update(uw);
     }
@@ -46,8 +46,8 @@ public class SkuServiceImpl extends ServiceImpl<SkuDao,SkuEntity> implements Sku
         QueryWrapper<ChannelEntity> qw = new QueryWrapper<>();
         qw
                 .lambda()
-                .eq(ChannelEntity::getSkuId,id);
-        if(channelService.count(qw) > 0){
+                .eq(ChannelEntity::getSkuId, id);
+        if (channelService.count(qw) > 0) {
             throw new LogicException("该商品正在使用中");
         }
 
@@ -57,16 +57,16 @@ public class SkuServiceImpl extends ServiceImpl<SkuDao,SkuEntity> implements Sku
     @Override
     public Pager<SkuEntity> findPage(long pageIndex, long pageSize, Integer classId, String skuName) {
         com.baomidou.mybatisplus.extension.plugins.pagination.Page<SkuEntity> page =
-                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageIndex,pageSize);
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageIndex, pageSize);
 
         LambdaQueryWrapper<SkuEntity> qw = new LambdaQueryWrapper<>();
-        if(!Strings.isNullOrEmpty(skuName)){
-            qw.like(SkuEntity::getSkuName,skuName);
+        if (!Strings.isNullOrEmpty(skuName)) {
+            qw.like(SkuEntity::getSkuName, skuName);
         }
-        if(classId !=null && classId >0){
-            qw.eq(SkuEntity::getClassId,classId);
+        if (classId != null && classId > 0) {
+            qw.eq(SkuEntity::getClassId, classId);
         }
-        this.page(page,qw);
+        this.page(page, qw);
 
         return Pager.build(page);
     }

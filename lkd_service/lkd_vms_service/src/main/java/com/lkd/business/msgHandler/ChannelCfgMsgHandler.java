@@ -12,7 +12,6 @@ import com.lkd.entity.VmCfgVersionEntity;
 import com.lkd.service.VendingMachineService;
 import com.lkd.service.VmCfgVersionService;
 import com.lkd.utils.JsonUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -23,20 +22,24 @@ import java.util.List;
  */
 @Component
 @ProcessType(value = "channelCfgReq")
-public class ChannelCfgMsgHandler implements MsgHandler{
-    @Autowired
-    private VmCfgVersionService versionService;
-    @Autowired
-    private VendingMachineService vmService;
-    @Autowired
-    private MqttProducer mqttProducer;
+public class ChannelCfgMsgHandler implements MsgHandler {
+    private final VmCfgVersionService versionService;
+    private final VendingMachineService vmService;
+    private final MqttProducer mqttProducer;
+
+    public ChannelCfgMsgHandler(VmCfgVersionService versionService, VendingMachineService vmService, MqttProducer mqttProducer) {
+        this.versionService = versionService;
+        this.vmService = vmService;
+        this.mqttProducer = mqttProducer;
+    }
+
     @Override
     public void process(String jsonMsg) throws IOException {
-        String innerCode = JsonUtil.getNodeByName("vmId",jsonMsg).asText();
-        long sn = JsonUtil.getNodeByName("sn",jsonMsg).asLong();
+        String innerCode = JsonUtil.getNodeByName("vmId", jsonMsg).asText();
+        long sn = JsonUtil.getNodeByName("sn", jsonMsg).asLong();
         VmCfgVersionEntity version = versionService.getVmVersion(innerCode);
         long versionId = 0L;
-        if(version != null){
+        if (version != null) {
             versionId = version.getSkuCfgVersion();
         }
         ChannelCfg cfg = new ChannelCfg();
@@ -45,9 +48,8 @@ public class ChannelCfgMsgHandler implements MsgHandler{
         cfg.setVersionId(versionId);
         List<ChannelEntity> channelEntityList = vmService.getAllChannel(innerCode);
         List<Channel> channels = Lists.newArrayList();
-        channelEntityList.forEach(c->{
-            Channel channelContract =
-                    new Channel();
+        channelEntityList.forEach(c -> {
+            Channel channelContract = new Channel();
             channelContract.setSkuId(c.getSkuId());
             channelContract.setChannelId(c.getChannelCode());
             channelContract.setCapacity(c.getMaxCapacity());
@@ -55,7 +57,6 @@ public class ChannelCfgMsgHandler implements MsgHandler{
         });
         cfg.setChannels(channels);
         cfg.setNeedResp(true);
-        mqttProducer.send(TopicConfig.TO_VM_TOPIC,2,cfg);
+        mqttProducer.send(TopicConfig.TO_VM_TOPIC, 2, cfg);
     }
 }
-

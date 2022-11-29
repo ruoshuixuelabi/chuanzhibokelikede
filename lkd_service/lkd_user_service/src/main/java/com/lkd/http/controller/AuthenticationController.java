@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 @CacheConfig(cacheNames = "auth")
-public class AuthenticationController{
+public class AuthenticationController {
     @Autowired
     private UserService userService;
 
-    @Cacheable(cacheNames = "user",key = "targetClass + methodName + #p0")
+    @Cacheable(cacheNames = "user", key = "targetClass + methodName + #p0")
     @GetMapping("/user/{userId}")
-    public UserEntity getUser(@PathVariable("userId") int userId){
+    public UserEntity getUser(@PathVariable("userId") int userId) {
         return userService.getById(userId);
     }
 }

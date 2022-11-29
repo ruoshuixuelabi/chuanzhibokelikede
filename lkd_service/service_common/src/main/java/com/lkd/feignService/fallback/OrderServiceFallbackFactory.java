@@ -14,12 +14,6 @@ public class OrderServiceFallbackFactory implements FallbackFactory<OrderService
     @Override
     public OrderService create(Throwable throwable) {
         log.error("订单服务调用失败",throwable);
-        return new OrderService() {
-
-            @Override
-            public List<Long> getBusinessTop10Skus(Integer businessId) {
-                return Lists.newArrayList();
-            }
-        };
+        return businessId -> Lists.newArrayList();
     }
 }

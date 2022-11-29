@@ -18,14 +18,14 @@ public class SmsSender {
     private ISmsService smsService;
 
     /**
-     *  发送验证码短信
+     * 发送验证码短信
+     *
      * @param telphone 手机号
-     * @param code 手机验证码
+     * @param code     手机验证码
      */
-    public void sendMsg(String telphone,String code){
+    public void sendMsg(String telphone, String code) {
         // 组装请求对象-具体描述见控制台-文档部分内容
         SendSmsRequest request = new SendSmsRequest();
-
         // 必填:待发送手机号
         request.setPhoneNumbers(telphone);
         // 必填:短信签名-可在短信控制台中找到
@@ -35,15 +35,12 @@ public class SmsSender {
         // 可选:模板中的变量替换JSON串,如模板内容为"【企业级分布式应用服务】,您的验证码为${code}"时,此处的值为
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.createObjectNode();
-        ((ObjectNode)rootNode).put("code",code);
-
+        ((ObjectNode) rootNode).put("code", code);
         try {
             request.setTemplateParam(mapper.writeValueAsString(rootNode));
             smsService.sendSmsRequest(request);
-        }
-        catch (Exception e) {
-            log.error("send sms error.",e);
+        } catch (Exception e) {
+            log.error("send sms error.", e);
         }
     }
-
 }

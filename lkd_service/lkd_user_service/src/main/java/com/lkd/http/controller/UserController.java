@@ -7,7 +7,6 @@ import com.lkd.feignService.VMService;
 import com.lkd.http.viewModel.LoginReq;
 import com.lkd.http.viewModel.LoginResp;
 import com.lkd.http.viewModel.UserReq;
-import com.lkd.redis.RedisUtils;
 import com.lkd.service.RoleService;
 import com.lkd.service.UserService;
 import com.lkd.viewmodel.Pager;
@@ -175,19 +174,21 @@ public class UserController {
 
     /**
      * 获取运营员数量
+     *
      * @return
      */
     @GetMapping("/operaterCount")
-    public Integer getOperatorCount(){
+    public long getOperatorCount(){
         return userService.getOperatorCount();
     }
 
     /**
      * 获取维修员数量
+     *
      * @return
      */
     @GetMapping("/repairerCount")
-    public Integer getRepairerCount(){
+    public long getRepairerCount(){
         return userService.getRepairerCount();
     }
 
@@ -239,11 +240,12 @@ public class UserController {
 
     /**
      * 获取某区域下维修员/运营员总数
+     *
      * @param isRepair
      * @return
      */
     @GetMapping("/countByRegion/{regionId}/{isRepair}")
-    public Integer getCountByRegion(@PathVariable String  regionId,@PathVariable Boolean isRepair){
+    public long getCountByRegion(@PathVariable String  regionId, @PathVariable Boolean isRepair){
         return userService.getCountByRegion(Long.valueOf(regionId),isRepair);
     }
 

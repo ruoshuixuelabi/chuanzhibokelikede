@@ -53,11 +53,10 @@ public class NodeServiceImpl  extends ServiceImpl<NodeDao, NodeEntity> implement
         LambdaQueryWrapper<VendingMachineEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper
                 .eq(VendingMachineEntity::getNodeId,id);
-        Integer count = vmService.count(queryWrapper);
+        long count = vmService.count(queryWrapper);
         if(count>0){
             throw new LogicException("点位下有售货机，不可删除");
         }
-
         return this.removeById(id);
     }
 
@@ -87,10 +86,9 @@ public class NodeServiceImpl  extends ServiceImpl<NodeDao, NodeEntity> implement
     }
 
     @Override
-    public Integer getCountByOwner(Integer ownerId) {
+    public long getCountByOwner(Integer ownerId) {
         LambdaQueryWrapper<NodeEntity> qw = new LambdaQueryWrapper<>();
         qw.eq(NodeEntity::getOwnerId,ownerId);
-
         return this.count(qw);
     }
 }

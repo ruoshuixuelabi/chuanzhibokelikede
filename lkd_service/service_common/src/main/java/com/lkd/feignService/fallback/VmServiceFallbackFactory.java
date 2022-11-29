@@ -16,7 +16,7 @@ import java.util.List;
 public class VmServiceFallbackFactory implements FallbackFactory<VMService> {
     @Override
     public VMService create(Throwable throwable) {
-        log.error("调用售货机服务失败",throwable);
+        log.error("调用售货机服务失败", throwable);
         return new VMService() {
             @Override
             public Integer getNodeCountByOwnerId(Integer ownerId) {
@@ -32,9 +32,9 @@ public class VmServiceFallbackFactory implements FallbackFactory<VMService> {
             public VendingMachineViewModel getVMInfo(String innerCode) {
                 return null;
             }
+
             @Override
             public void inventory(int percent) {
-
             }
 
             @Override
@@ -54,9 +54,7 @@ public class VmServiceFallbackFactory implements FallbackFactory<VMService> {
 
             @Override
             public RegionViewModel getRegionById(String regionId) {
-                RegionViewModel viewModel = new RegionViewModel();
-
-                return viewModel;
+                return new RegionViewModel();
             }
 
             @Override

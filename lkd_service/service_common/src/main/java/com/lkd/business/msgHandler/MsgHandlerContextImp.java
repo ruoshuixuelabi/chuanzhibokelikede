@@ -1,6 +1,5 @@
 package com.lkd.business.msgHandler;
 
-import com.google.common.collect.Maps;
 import com.lkd.annotations.ProcessType;
 import com.lkd.business.MsgHandler;
 import com.lkd.business.MsgHandlerContext;
@@ -9,12 +8,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
 public class MsgHandlerContextImp implements ApplicationContextAware, MsgHandlerContext{
     private ApplicationContext ctx;
-    private Map<String, MsgHandler> handlerMap = Maps.newHashMap();
+//    private Map<String, MsgHandler> handlerMap = Maps.newHashMap();
+    private Map<String, MsgHandler> handlerMap =new HashMap<>();
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

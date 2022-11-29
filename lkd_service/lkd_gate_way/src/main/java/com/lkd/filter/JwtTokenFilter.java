@@ -1,6 +1,6 @@
 package com.lkd.filter;
 
-//import com.google.common.base.Strings;
+import cn.hutool.core.util.StrUtil;
 import com.lkd.common.VMSystem;
 import com.lkd.config.GatewayConfig;
 import com.lkd.http.view.TokenObject;
@@ -27,31 +27,31 @@ import java.util.Arrays;
  */
 @Component
 @Slf4j
-public class JwtTokenFilter implements GlobalFilter, Ordered{
+public class JwtTokenFilter implements GlobalFilter, Ordered {
+    private final GatewayConfig gatewayConfig;
 
-    @Autowired
-    private GatewayConfig gatewayConfig;
+    public JwtTokenFilter(GatewayConfig gatewayConfig) {
+        this.gatewayConfig = gatewayConfig;
+    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String url = exchange.getRequest().getURI().getPath();
         //跳过不需要验证的路径
-        boolean matchUrl = Arrays.stream(gatewayConfig.getUrls())
-                .anyMatch(url::contains);
-        if(matchUrl){
+        boolean matchUrl = Arrays.stream(gatewayConfig.getUrls()).anyMatch(url::contains);
+        if (matchUrl) {
             return chain.filter(exchange);
         }
-        if(null != gatewayConfig.getUrls()&& Arrays.asList(gatewayConfig.getUrls()).contains(url)){
+        if (null != gatewayConfig.getUrls() && Arrays.asList(gatewayConfig.getUrls()).contains(url)) {
             return chain.filter(exchange);
         }
         String token = exchange.getRequest().getHeaders().getFirst("Authorization");
         ServerHttpResponse resp = exchange.getResponse();
-        if(Strings.isNullOrEmpty(token)) return authError(resp);
-
+        if (StrUtil.isBlank(token)) return authError(resp);
         try {
             TokenObject tokenObject = JWTUtil.decode(token);
-            JWTUtil.VerifyResult verifyResult = JWTUtil.verifyJwt(token,tokenObject.getMobile()+VMSystem.JWT_SECRET);
-            if(!verifyResult.isValidate()) return authError(resp);
+            JWTUtil.VerifyResult verifyResult = JWTUtil.verifyJwt(token, tokenObject.getMobile() + VMSystem.JWT_SECRET);
+            if (!verifyResult.isValidate()) return authError(resp);
         } catch (IOException e) {
             return authError(resp);
         }
@@ -65,12 +65,13 @@ public class JwtTokenFilter implements GlobalFilter, Ordered{
 
     /**
      * 认证错误输出
+     *
      * @param resp 响应对象
      * @return
      */
     private Mono<Void> authError(ServerHttpResponse resp) {
         resp.setStatusCode(HttpStatus.UNAUTHORIZED);
-        resp.getHeaders().add("Content-Type","application/json;charset=UTF-8");
+        resp.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
         String returnStr = "token校验失败";
         DataBuffer buffer = resp.bufferFactory().wrap(returnStr.getBytes(StandardCharsets.UTF_8));
         return resp.writeWith(Flux.just(buffer));

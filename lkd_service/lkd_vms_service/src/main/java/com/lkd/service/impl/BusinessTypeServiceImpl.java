@@ -6,8 +6,6 @@ import com.lkd.entity.BusinessTypeEntity;
 import com.lkd.service.BusinessTypeService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class BusinessTypeServiceImpl extends ServiceImpl<BusinessTypeDao, BusinessTypeEntity> implements BusinessTypeService {
 }

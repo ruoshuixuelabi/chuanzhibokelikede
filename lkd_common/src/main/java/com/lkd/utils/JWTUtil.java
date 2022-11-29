@@ -14,9 +14,10 @@ import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.Date;
 
-public class JWTUtil{
+public class JWTUtil {
     /**
      * 签发JWT
+     *
      * @param tokenObject
      * @param secret
      * @return
@@ -24,7 +25,6 @@ public class JWTUtil{
      */
     public static String createJWTByObj(TokenObject tokenObject, String secret) throws IOException {
         SecretKey secretKey = generalKey(secret);
-
         ZoneId zoneId = ZoneId.systemDefault();
         ZonedDateTime zdt = LocalDateTime.now().plusDays(7).atZone(zoneId);
         //添加构成JWT的参数
@@ -34,9 +34,7 @@ public class JWTUtil{
                 .setHeaderParam("alg", "HS256")  //加密算法
                 .addClaims(JsonUtil.convertToMap(tokenObject))
                 .setExpiration(Date.from(zdt.toInstant()))  //设置过期时间
-                .signWith(SignatureAlgorithm.HS256,secretKey);  //用密钥签名
-
-
+                .signWith(secretKey, SignatureAlgorithm.HS256);  //用密钥签名
         //生成JWT
         return builder.compact();
     }
@@ -46,16 +44,13 @@ public class JWTUtil{
      */
     public static VerifyResult verifyJwt(String token, String secret) {
         //签名秘钥，和生成的签名的秘钥一模一样
-        SecretKey key =  generalKey(secret);
+        SecretKey key = generalKey(secret);
         try {
-
 //            ZoneId zoneId = ZoneId.systemDefault();
 //            ZonedDateTime zdt = LocalDateTime.now().atZone(zoneId);
-            Jwt jwt = Jwts.parser()
-                    .setSigningKey(key)
-                    .parse(token);
-
-
+            Jwt jwt = Jwts.parserBuilder()
+                    .setSigningKey(key).build().parse(token);
+//                    .parse(token);
             Date date = ((Claims) jwt.getBody()).getExpiration();
             if (date == null) {
                 return new VerifyResult(false, 5002);
@@ -64,11 +59,9 @@ public class JWTUtil{
             if (expires.isBefore(LocalDateTime.now())) {
                 return new VerifyResult(false, 5001);
             }
-
             return new VerifyResult(true, 200);
         } catch (Exception e) {
             e.printStackTrace();
-
             return new VerifyResult(false, 5002);
         }//设置需要解析的jwt
     }
@@ -76,7 +69,6 @@ public class JWTUtil{
     public static TokenObject decode(String token) throws IOException {
         String bodyData = token.split("\\.")[1];
         String bodyStr = new String(Base64.getDecoder().decode(bodyData), StandardCharsets.UTF_8);
-
         return JsonUtil.getByJson(bodyStr, TokenObject.class);
     }
 
@@ -88,15 +80,12 @@ public class JWTUtil{
      */
     private static SecretKey generalKey(String jwtSecret) {
         SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
-
         byte[] encodedKey = Base64.getMimeDecoder().decode(jwtSecret);//DatatypeConverter.parseBase64Binary(jwtSecret);//Base64.getDecoder().decode(jwtSecret);
-        SecretKey key = new SecretKeySpec(encodedKey, signatureAlgorithm.getJcaName());
-
-        return key;
+        return new SecretKeySpec(encodedKey, signatureAlgorithm.getJcaName());
     }
 
     @Data
-    public static class VerifyResult{
+    public static class VerifyResult {
         private boolean isValidate;
         /**
          * 5001:token过期;5002:无效token;5003:token校验异常

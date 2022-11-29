@@ -58,7 +58,7 @@ public class RegionServiceImpl extends ServiceImpl<RegionDao, RegionEntity> impl
     public Boolean delete(Long regionId) {
         var qw = new LambdaQueryWrapper<NodeEntity>();
         qw.eq(NodeEntity::getRegionId,regionId);
-        int count = nodeService.count(qw);
+        long count = nodeService.count(qw);
         if(count>0){
             throw new LogicException("区域下存在点位，不能删除");
         }

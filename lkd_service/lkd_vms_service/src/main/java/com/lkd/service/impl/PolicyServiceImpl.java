@@ -135,7 +135,7 @@ public class PolicyServiceImpl extends ServiceImpl<PolicyDao,PolicyEntity> imple
     public Boolean delete(Integer policyId) {
         var qw = new LambdaQueryWrapper<VmPolicyEntity>();
         qw.eq(VmPolicyEntity::getPolicyId,policyId);
-        int count = vmPolicyService.count(qw);
+        long count = vmPolicyService.count(qw);
         if(count > 0){
             throw new LogicException("该策略正在使用");
         }

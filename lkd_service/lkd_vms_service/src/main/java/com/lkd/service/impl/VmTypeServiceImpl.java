@@ -15,30 +15,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class VmTypeServiceImpl extends ServiceImpl<VmTypeDao,VmTypeEntity> implements VmTypeService{
+public class VmTypeServiceImpl extends ServiceImpl<VmTypeDao, VmTypeEntity> implements VmTypeService {
     @Autowired
     private VendingMachineService vmService;
 
     @Override
     public Boolean delete(Integer id) {
         LambdaQueryWrapper<VendingMachineEntity> qw = new LambdaQueryWrapper<>();
-        qw.eq(VendingMachineEntity::getVmType,id);
-        if(vmService.count(qw) > 0){
+        qw.eq(VendingMachineEntity::getVmType, id);
+        if (vmService.count(qw) > 0) {
             throw new LogicException("该售货机类型在使用");
         }
-
         return this.removeById(id);
     }
 
     @Override
-    public Pager<VmTypeEntity> search(long pageIndex,long pageSize,String name) {
-        var page = new Page<VmTypeEntity>(pageIndex,pageSize);
+    public Pager<VmTypeEntity> search(long pageIndex, long pageSize, String name) {
+        var page = new Page<VmTypeEntity>(pageIndex, pageSize);
         var qw = new LambdaQueryWrapper<VmTypeEntity>();
-        if(!Strings.isNullOrEmpty(name)){
-            qw.like(VmTypeEntity::getName,name);
+        if (!Strings.isNullOrEmpty(name)) {
+            qw.like(VmTypeEntity::getName, name);
         }
-        this.page(page,qw);
-
+        this.page(page, qw);
         return Pager.build(page);
     }
 }

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 public class VmCfgVersionServiceImpl extends ServiceImpl<VmCfgVersionDao,VmCfgVersionEntity> implements VmCfgVersionService{
     @Autowired
     private VendingMachineService vmService;
-
     @Override
     public boolean initVersionCfg(long vmId,String innerCode) {
         VmCfgVersionEntity cfgVersionEntity = new VmCfgVersionEntity();

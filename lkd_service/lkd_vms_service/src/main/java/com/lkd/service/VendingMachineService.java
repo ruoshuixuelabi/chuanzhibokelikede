@@ -101,10 +101,11 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
 
     /**
      * 获取合作商下设备数量
+     *
      * @param ownerId
      * @return
      */
-    Integer getCountByOwnerId(Integer ownerId);
+    long getCountByOwnerId(Integer ownerId);
 
     /**
      * 设置售货机位置信息

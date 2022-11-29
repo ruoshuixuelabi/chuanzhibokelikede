@@ -14,13 +14,14 @@ public interface UserService extends IService<UserEntity> {
     /**
      * 获取所有运营人员数量
      */
-    Integer getOperatorCount();
+    long getOperatorCount();
 
     /**
      * 获取所有维修员数量
+     *
      * @return
      */
-    Integer getRepairerCount();
+    long getRepairerCount();
     /**
      * 分页查询
      * @param pageIndex
@@ -59,8 +60,9 @@ public interface UserService extends IService<UserEntity> {
 
     /**
      * 获取某区域下维修员/运营员总数
+     *
      * @param isRepair
      * @return
      */
-    Integer getCountByRegion(Long regionId,Boolean isRepair);
+    long getCountByRegion(Long regionId, Boolean isRepair);
 }
