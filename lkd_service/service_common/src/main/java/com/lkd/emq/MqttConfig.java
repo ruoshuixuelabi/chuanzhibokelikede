@@ -32,9 +32,7 @@ public class MqttConfig {
     private int keepAliveInterval;
     @Value("${mqtt.client.connectionTimeout}")
     private int connectionTimeout;
-
     //private List<String> consumerTopics;
-
     @Autowired
     private MqttCallback mqttCallback;
 
@@ -47,13 +45,11 @@ public class MqttConfig {
             client.setManualAcks(true);
             mqttCallback.setMqttClient(client);
             client.setCallback(mqttCallback);
-
-
             client.connect(mqttConnectOptions());
 //            client.subscribe(subTopic);
             return client;
         } catch (MqttException e) {
-            log.error("emq connect error",e);
+            log.error("emq connect error", e);
             return null;
         }
     }
@@ -68,7 +64,6 @@ public class MqttConfig {
         options.setConnectionTimeout(connectionTimeout);
         options.setKeepAliveInterval(keepAliveInterval);
         options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
-
         return options;
     }
 

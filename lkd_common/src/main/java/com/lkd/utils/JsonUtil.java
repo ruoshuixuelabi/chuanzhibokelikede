@@ -12,6 +12,7 @@ import java.util.Map;
 public class JsonUtil {
     /**
      * 从json字符串中根据nodeName获取值
+     *
      * @param nodeName
      * @param json
      * @return
@@ -21,13 +22,13 @@ public class JsonUtil {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
         JsonNode node = jsonNode.findPath(nodeName);
-        if(node == null) return null;
-
+        if (node == null) return null;
         return node.asText();
     }
 
     /**
      * 根据nodeName获取节点内容
+     *
      * @param nodeName
      * @param json
      * @return
@@ -35,12 +36,12 @@ public class JsonUtil {
      */
     public static JsonNode getNodeByName(String nodeName, String json) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-
         return objectMapper.readTree(json).findPath(nodeName);
     }
 
     /**
      * 反序列化
+     *
      * @param json
      * @param clazz
      * @param <T>
@@ -53,38 +54,36 @@ public class JsonUtil {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         // 在序列化时日期格式默认为 yyyy-MM-dd'T'HH:mm:ss.SSSZ
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
         return mapper.readValue(json, clazz);
     }
 
     /**
      * 序列化
+     *
      * @param object
      * @return
      * @throws JsonProcessingException
      */
     public static String serialize(Object object) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-
         return mapper.writeValueAsString(object);
     }
 
     public static JsonNode getTreeNode(String json) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
-
         return objectMapper.readTree(json);
     }
 
 
     /**
      * 将对象转map
+     *
      * @param obj
      * @return
      * @throws IOException
      */
-    public static Map<String,Object> convertToMap(Object obj) throws IOException {
+    public static Map<String, Object> convertToMap(Object obj) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-
-        return mapper.readValue(serialize(obj),Map.class);
+        return mapper.readValue(serialize(obj), Map.class);
     }
 }

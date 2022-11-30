@@ -12,16 +12,17 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class MqttProducer {
-
     @Value("${mqtt.producer.defaultQos}")
     private int defaultProducerQos;
     @Value("${mqtt.producer.defaultRetained}")
     private boolean defaultRetained;
     @Value("${mqtt.producer.defaultTopic}")
     private String defaultTopic;
+    private final MqttClient mqttClient;
 
-    @Autowired
-    private MqttClient mqttClient;
+    public MqttProducer(MqttClient mqttClient) {
+        this.mqttClient = mqttClient;
+    }
 
     public void send(String payload) {
         this.send(defaultTopic, payload);
@@ -40,12 +41,12 @@ public class MqttProducer {
             mqttClient.publish(topic, payload.getBytes(), qos, retained);
             mqttClient.setManualAcks(true);
         } catch (MqttException e) {
-            log.error("publish msg error.",e);
+            log.error("publish msg error.", e);
         }
     }
 
-    public <T extends Object> void send(String topic, int qos, T msg) throws JsonProcessingException {
+    public <T> void send(String topic, int qos, T msg) throws JsonProcessingException {
         String payload = JsonUtil.serialize(msg);
-        this.send(topic,qos,payload);
+        this.send(topic, qos, payload);
     }
 }
