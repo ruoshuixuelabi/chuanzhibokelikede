@@ -46,9 +46,9 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class TaskServiceImpl extends ServiceImpl<TaskDao,TaskEntity> implements TaskService{
+public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements TaskService {
     @Autowired
-    private RedisTemplate<String,Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     private TaskDetailsService taskDetailsService;
@@ -64,13 +64,14 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao,TaskEntity> implements 
 
 
     @Override
-    @Transactional(rollbackFor = {Exception.class},noRollbackFor = {LogicException.class})
+    @Transactional(rollbackFor = {Exception.class}, noRollbackFor = {LogicException.class})
     public boolean createTask(TaskViewModel taskViewModel) throws LogicException {
-        checkCreateTask(taskViewModel.getInnerCode(),taskViewModel.getProductType());
-        if(hasTask(taskViewModel.getInnerCode(),taskViewModel.getProductType())) {
+        checkCreateTask(taskViewModel.getInnerCode(), taskViewModel.getProductType());
+        if (hasTask(taskViewModel.getInnerCode(), taskViewModel.getProductType())) {
             throw new LogicException("该机器有未完成的同类型工单");
         }
         TaskEntity taskEntity = new TaskEntity();
+        //工单编号
         taskEntity.setTaskCode(this.generateTaskCode());
         taskEntity.setTaskStatus(VMSystem.TASK_STATUS_CREATE);
         taskEntity.setCreateType(taskViewModel.getCreateType());
@@ -80,18 +81,15 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao,TaskEntity> implements 
         taskEntity.setUserName(userName);
         taskEntity.setInnerCode(taskViewModel.getInnerCode());
         taskEntity.setAssignorId(taskViewModel.getAssignorId());
-
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse(taskViewModel.getExpect(),df);
+        LocalDate date = LocalDate.parse(taskViewModel.getExpect(), df);
         LocalDateTime dateTime = date.atStartOfDay();
         taskEntity.setExpect(dateTime);
-
         taskEntity.setUserId(taskViewModel.getUserId());
         taskEntity.setAddr(vmService.getVMInfo(taskViewModel.getInnerCode()).getNodeAddr());
-
         this.save(taskEntity);
-        if(taskEntity.getProductTypeId() == VMSystem.TASK_TYPE_SUPPLY){
-            taskViewModel.getDetails().forEach(d->{
+        if (taskEntity.getProductTypeId() == VMSystem.TASK_TYPE_SUPPLY) {
+            taskViewModel.getDetails().forEach(d -> {
                 TaskDetailsEntity detailsEntity = new TaskDetailsEntity();
                 detailsEntity.setChannelCode(d.getChannelCode());
                 detailsEntity.setExpectCapacity(d.getExpectCapacity());
@@ -102,10 +100,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao,TaskEntity> implements 
                 taskDetailsService.save(detailsEntity);
             });
         }
-
         return true;
     }
-
 
     @Override
     public boolean completeTask(long id) {
@@ -121,89 +117,86 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao,TaskEntity> implements 
     public List<TaskStatusTypeEntity> getAllStatus() {
         QueryWrapper<TaskStatusTypeEntity> qw = new QueryWrapper<>();
         qw.lambda()
-                .ge(TaskStatusTypeEntity::getStatusId,VMSystem.TASK_STATUS_CREATE);
-
+                .ge(TaskStatusTypeEntity::getStatusId, VMSystem.TASK_STATUS_CREATE);
         return statusTypeService.list(qw);
     }
 
     @Override
-    public Pager<TaskEntity> search(Long pageIndex, Long pageSize, String innerCode, Integer userId, String taskCode,Integer status,Boolean isRepair,String start,String end) {
-        Page<TaskEntity> page = new Page<>(pageIndex,pageSize);
+    public Pager<TaskEntity> search(Long pageIndex, Long pageSize, String innerCode, Integer userId, String taskCode, Integer status, Boolean isRepair, String start, String end) {
+        Page<TaskEntity> page = new Page<>(pageIndex, pageSize);
         LambdaQueryWrapper<TaskEntity> qw = new LambdaQueryWrapper<>();
-        if(!Strings.isNullOrEmpty(innerCode)){
-            qw.eq(TaskEntity::getInnerCode,innerCode);
+        if (!Strings.isNullOrEmpty(innerCode)) {
+            qw.eq(TaskEntity::getInnerCode, innerCode);
         }
-        if(userId != null && userId > 0){
-            qw.eq(TaskEntity::getAssignorId,userId);
+        if (userId != null && userId > 0) {
+            qw.eq(TaskEntity::getAssignorId, userId);
         }
-        if(!Strings.isNullOrEmpty(taskCode)){
-            qw.like(TaskEntity::getTaskCode,taskCode);
+        if (!Strings.isNullOrEmpty(taskCode)) {
+            qw.like(TaskEntity::getTaskCode, taskCode);
         }
-        if(status != null && status > 0){
-            qw.eq(TaskEntity::getTaskStatus,status);
+        if (status != null && status > 0) {
+            qw.eq(TaskEntity::getTaskStatus, status);
         }
-        if(isRepair != null){
-            if(isRepair){
-                qw.ne(TaskEntity::getProductTypeId,VMSystem.TASK_TYPE_SUPPLY);
-            }else {
-                qw.eq(TaskEntity::getProductTypeId,VMSystem.TASK_TYPE_SUPPLY);
+        if (isRepair != null) {
+            if (isRepair) {
+                qw.ne(TaskEntity::getProductTypeId, VMSystem.TASK_TYPE_SUPPLY);
+            } else {
+                qw.eq(TaskEntity::getProductTypeId, VMSystem.TASK_TYPE_SUPPLY);
             }
         }
-        if(!Strings.isNullOrEmpty(start) && !Strings.isNullOrEmpty(end)){
+        if (!Strings.isNullOrEmpty(start) && !Strings.isNullOrEmpty(end)) {
             qw
-                    .ge(TaskEntity::getCreateTime,LocalDate.parse(start,DateTimeFormatter.ISO_LOCAL_DATE))
-                    .le(TaskEntity::getCreateTime,LocalDate.parse(end,DateTimeFormatter.ISO_LOCAL_DATE));
+                    .ge(TaskEntity::getCreateTime, LocalDate.parse(start, DateTimeFormatter.ISO_LOCAL_DATE))
+                    .le(TaskEntity::getCreateTime, LocalDate.parse(end, DateTimeFormatter.ISO_LOCAL_DATE));
         }
         //根据最后更新时间倒序排序
         qw.orderByDesc(TaskEntity::getUpdateTime);
 
-        return Pager.build(this.page(page,qw));
+        return Pager.build(this.page(page, qw));
     }
-
-
-
 
 
     /**
      * 获取同一天内分配的工单最少的人
+     *
      * @param innerCode
-     * @param isRepair 是否是维修工单
+     * @param isRepair  是否是维修工单
      * @return
      */
     @Override
-    public Integer getLeastUser(String innerCode,Boolean isRepair){
+    public Integer getLeastUser(String innerCode, Boolean isRepair) {
         List<UserViewModel> userList = null;
-        if(true){
+        if (true) {
             userList = userService.getRepairerListByInnerCode(innerCode);
-        }else {
+        } else {
             userList = userService.getOperatorListByInnerCode(innerCode);
         }
-        if(userList == null) return null;
+        if (userList == null) return null;
         QueryWrapper<TaskEntity> qw = new QueryWrapper<>();
         //按人分组，取工作量。将工单数暂存到了user_id列里
         qw.select("assignor_id,count(1) as user_id");
-        if(isRepair){
+        if (isRepair) {
             qw.lambda().ne(TaskEntity::getProductTypeId, VMSystem.TASK_TYPE_SUPPLY);
-        }else {
-            qw.lambda().eq(TaskEntity::getProductTypeId,VMSystem.TASK_TYPE_SUPPLY);
+        } else {
+            qw.lambda().eq(TaskEntity::getProductTypeId, VMSystem.TASK_TYPE_SUPPLY);
         }
         qw
                 .lambda()
                 //.le(TaskEntity::getTaskStatus,VMSystem.TASK_STATUS_PROGRESS) //根据未完成的工单
-                .ne(TaskEntity::getTaskStatus,VMSystem.TASK_STATUS_CANCEL) //根据所有未被取消的工单做统计
-                .ge(TaskEntity::getCreateTime,LocalDate.now())
-                .in(TaskEntity::getAssignorId,userList.stream().map(UserViewModel::getUserId).collect(Collectors.toList()))
+                .ne(TaskEntity::getTaskStatus, VMSystem.TASK_STATUS_CANCEL) //根据所有未被取消的工单做统计
+                .ge(TaskEntity::getCreateTime, LocalDate.now())
+                .in(TaskEntity::getAssignorId, userList.stream().map(UserViewModel::getUserId).collect(Collectors.toList()))
                 .groupBy(TaskEntity::getAssignorId)
                 .orderByAsc(TaskEntity::getUserId);
         List<TaskEntity> result = this.list(qw);
 
         List<TaskEntity> taskList = Lists.newArrayList();
         Integer userId = 0;
-        for (UserViewModel user:userList) {
-            Optional<TaskEntity> taskEntity = result.stream().filter(r->r.getAssignorId() == user.getUserId()).findFirst();
+        for (UserViewModel user : userList) {
+            Optional<TaskEntity> taskEntity = result.stream().filter(r -> r.getAssignorId() == user.getUserId()).findFirst();
 
             //当前人员今日没有分配工单
-            if(taskEntity.isEmpty()){
+            if (taskEntity.isEmpty()) {
                 return user.getUserId();
             }
             TaskEntity item = new TaskEntity();
@@ -213,60 +206,55 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao,TaskEntity> implements 
         }
         //取最少工单的人
         taskList.stream().sorted(Comparator.comparing(TaskEntity::getUserId));
-
         return taskList.get(0).getAssignorId();
     }
 
 
     /**
      * 同一台设备下是否存在未完成的工单
+     *
      * @param innerCode
      * @param productionType
      * @return
      */
-    private boolean hasTask(String innerCode,int productionType){
+    private boolean hasTask(String innerCode, int productionType) {
         QueryWrapper<TaskEntity> qw = new QueryWrapper<>();
         qw.lambda()
                 .select(TaskEntity::getTaskId)
-                .eq(TaskEntity::getInnerCode,innerCode)
-                .eq(TaskEntity::getProductTypeId,productionType)
-                .le(TaskEntity::getTaskStatus,VMSystem.TASK_STATUS_PROGRESS);
+                .eq(TaskEntity::getInnerCode, innerCode)
+                .eq(TaskEntity::getProductTypeId, productionType)
+                .le(TaskEntity::getTaskStatus, VMSystem.TASK_STATUS_PROGRESS);
 
         return this.count(qw) > 0;
     }
 
-    private void checkCreateTask(String innerCode,int productType) throws LogicException {
+    private void checkCreateTask(String innerCode, int productType) throws LogicException {
         VendingMachineViewModel vmInfo = vmService.getVMInfo(innerCode);
-        if(vmInfo == null) throw new LogicException("设备校验失败");
-        if(productType == VMSystem.TASK_TYPE_DEPLOY  && vmInfo.getVmStatus() == VMSystem.VM_STATUS_RUNNING){
+        if (vmInfo == null) throw new LogicException("设备校验失败");
+        if (productType == VMSystem.TASK_TYPE_DEPLOY && vmInfo.getVmStatus() == VMSystem.VM_STATUS_RUNNING) {
             throw new LogicException("该设备已在运营");
         }
-
-        if(productType == VMSystem.TASK_TYPE_SUPPLY  && vmInfo.getVmStatus() != VMSystem.VM_STATUS_RUNNING){
+        if (productType == VMSystem.TASK_TYPE_SUPPLY && vmInfo.getVmStatus() != VMSystem.VM_STATUS_RUNNING) {
             throw new LogicException("该设备不在运营状态");
         }
-
-        if(productType == VMSystem.TASK_TYPE_REVOKE  && vmInfo.getVmStatus() != VMSystem.VM_STATUS_RUNNING){
+        if (productType == VMSystem.TASK_TYPE_REVOKE && vmInfo.getVmStatus() != VMSystem.VM_STATUS_RUNNING) {
             throw new LogicException("该设备不在运营状态");
         }
     }
 
     /**
      * 生成工单编码
+     *
      * @return
      */
-    private String generateTaskCode(){
-        String key = "lkd.task.code."+LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+    private String generateTaskCode() {
+        String key = "lkd.task.code." + LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
         Object obj = redisTemplate.opsForValue().get(key);
-        if(obj == null){
-            redisTemplate.opsForValue().set(key,1L, Duration.ofDays(1));
-
-            return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"))  + 1;
+        //当天的第一个就是空
+        if (obj == null) {
+            redisTemplate.opsForValue().set(key, 1L, Duration.ofDays(1));
+            return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + 1;
         }
-
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + redisTemplate.opsForValue().increment(key,1) ;
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")) + redisTemplate.opsForValue().increment(key, 1);
     }
-
-
-
 }

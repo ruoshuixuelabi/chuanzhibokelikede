@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/task")
-public class TaskController {
+public class TaskController    {
     @Autowired
     private TaskService taskService;
     @Autowired
@@ -44,6 +44,7 @@ public class TaskController {
      */
     @PostMapping("/create")
     public boolean create(@RequestBody TaskViewModel task) throws LogicException {
+//        task.setUserId(getUserId());
         return taskService.createTask(task);
     }
 
